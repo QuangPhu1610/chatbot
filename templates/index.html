@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- HTML Meta Tags -->
+    <title>Phim Mới</title>
+    <meta property="og:image" content="https://iphimmoi.net/wp-content/uploads/2021/08/dao-hai-tac-34373-thumbnail.jpg">
+    <style>
+        body {
+            background-color: #388fc2;
+            margin: 0 auto;
+            max-width: 800px;
+            padding: 0 20px;
+        }
+
+        p {
+            margin: 0px
+        }
+
+        .container {
+            border: 2px solid #dedede;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            width: 50%;
+        }
+
+        .darker {
+            border-color: #ccc;
+            background-color: #ddd;
+        }
+
+        .container::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        .container img {
+            /* float: left;
+            max-width: 60px;
+            width: 100%;
+            margin-right: 20px;
+            border-radius: 50%; */
+        }
+
+        .container p.right {
+            float: right;
+            margin-left: 20px;
+            margin-right: 0;
+            
+        }
+
+        .time-right {
+            float: right;
+            color: #aaa;
+        }
+
+        .time-left {
+            float: left;
+            color: #999;
+        }
+        textarea {
+            display: inline-block;
+            width: 80%;
+            resize: none;
+        }
+
+        #submit {
+            display: inline-block;
+            width: 20%;
+            margin: 0px 10px;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <h2 style="color: #ddd;">Chatbot Film</h2>
+    <div id="messages">
+        <div class="container"><p tag="resend">/film <br> /chiến tranh <br> /hài hước <br> /gia đình <br> /cổ trang</p></div>
+    </div>
+    <div class="container">
+        <div style="display: flex;">
+            <textarea placeholder="Input command here" id="mytext">film</textarea>
+            <button id="send" value="Send">Send</button>
+            <button id="delete" value="Delete">Delete</button>
+        </div>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function add_messages(film, role) {
+        let data = $("#messages").html();
+        let messages = "";
+        let direction = "";
+        if (role != "bot") {
+            direction = "right"
+            message = 
+            `
+                <div class="container">
+                    <p tag="resend" style="color:blue" class="${direction}">/${film}</p>
+                </div>
+            `
+        }else{
+            message = 
+            `
+                <div class="container">
+                    <p class="${direction}">${film.title}</p>
+                    <a href="${film.link}">${film.link}</a>
+                    <div>
+                        <img src="${film.img}" width="250" height="350">
+                    </div>
+                </div>
+                
+            `
+        }
+        $("#messages").html(data + message);
+    }
+    function get_data(theloai){
+        var form = new FormData();
+            form.append("film_type", theloai);
+            var settings = {
+                "url": "http://localhost:7699/myfilm",
+                "method": "POST",
+                "timeout": 0,
+                "processData": false,
+                "mimeType": "multipart/form-data",
+                "contentType": false,
+                "data": form
+            };
+
+            $.ajax(settings).done(function (response) {
+                let json_data = JSON.parse(response);
+                console.log(response);
+                for (let i =0;i < json_data.length;i++){
+                    let film = json_data[i];
+                    add_messages(film,"bot")
+                }
+            }).fail(function (response) {
+                console.log(response);
+            });
+    }
+    $(document).ready(function () {
+        $("#delete").on("click", function () {
+            $("#messages").html("");
+        })
+        $(document).on('click',"p[tag='resend']", function () {
+            let data = $(this).text().replace("/","");
+            add_messages(data,"user");
+            get_data(data)
+        });
+        $("#send").on("click", function () {
+            let text = $("#mytext").val();
+            add_messages(text,"user");
+            get_data(text)
+        });
+    });
+</script>
+
+</html>
